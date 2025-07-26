@@ -1,0 +1,48 @@
+Run 1
+Architecture: 1
+Learning rate: 0.001
+Regularizer: False
+Accuracy: 0.8876
+----------------------------
+Run 2
+Architecture: 1
+Learning rate: 0.001
+Regularizer: True
+Accuracy: 0.8606
+----------------------------
+Run 3
+Architecture: 1
+Learning rate: 0.0005
+Regularizer: False
+Accuracy: 0.8817
+----------------------------
+Run 4
+Architecture: 1
+Learning rate: 0.0005
+Regularizer: True
+Accuracy: 0.8708
+----------------------------
+Run 5
+Architecture: 2
+Learning rate: 0.001
+Regularizer: False
+Accuracy: 0.8806
+----------------------------
+Run 6
+Architecture: 2
+Learning rate: 0.001
+Regularizer: True
+Accuracy: 0.8692
+----------------------------
+Run 7
+Architecture: 2
+Learning rate: 0.0005
+Regularizer: False
+Accuracy: 0.8894
+----------------------------
+Run 8
+Architecture: 2
+Learning rate: 0.0005
+Regularizer: True
+Accuracy: 0.8712
+----------------------------
