@@ -1,0 +1,8 @@
+Model_A Summary
+Test Accuracy: 0.4307
+95% Confidence Interval: [0.4210, 0.4404]
+----------------------------------------
+Model_B Summary
+Test Accuracy: 0.5984
+95% Confidence Interval: [0.5888, 0.6080]
+----------------------------------------
