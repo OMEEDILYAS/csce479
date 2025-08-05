@@ -61,3 +61,4 @@ for model_name, model in models.items():
 
     print(f"\n {model_name} Test Accuracy: {test_acc:.4f} | 95% CI: [{ci_low:.4f}, {ci_high:.4f}]")
     # Save summary results to file
+    save_summary_to_file(model_name, test_acc, ci_low, ci_high)
