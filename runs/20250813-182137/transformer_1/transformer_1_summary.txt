@@ -1,0 +1,7 @@
+Model: transformer_1
+Config: {"embed_dim": 128, "num_heads": 4, "ff_dim": 256, "dropout_rate": 0.2, "l2_reg": 0.0}
+Test metrics: {'loss': 0.8652399778366089, 'accuracy': 0.9393720626831055}
+Accuracy: 0.8652  CI95: [0.8610, 0.8694]
+Confusion matrix (rows=true, cols=pred):
+[10722, 1778]
+[1591, 10909]

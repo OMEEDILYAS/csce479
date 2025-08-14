@@ -1,0 +1,7 @@
+Model: bilstm_2
+Config: {"embed_dim": 256, "lstm_units": 256, "dropout_rate": 0.3, "l2_reg": 0.0001}
+Test metrics: {'loss': 0.8649600148200989, 'accuracy': 0.9406132698059082}
+Accuracy: 0.8650  CI95: [0.8607, 0.8692]
+Confusion matrix (rows=true, cols=pred):
+[10993, 1507]
+[1869, 10631]

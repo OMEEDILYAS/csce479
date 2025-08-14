@@ -13,7 +13,7 @@ from tensorflow.keras.layers import TextVectorization
 AUTOTUNE = tf.data.AUTOTUNE
 
 
-#DATA 
+# DATA
 
 def load_imdb_tfds() -> Tuple[tf.data.Dataset, tf.data.Dataset, tfds.core.DatasetInfo]:
     (train_ds, test_ds), info = tfds.load(
@@ -77,7 +77,7 @@ def prepare_datasets(
     batch_size: int,
     val_fraction: float = 0.2,
 ) -> Tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset, TextVectorization, Dict[str, int]]:
-    raw_train, raw_test, info = load_imdb_tfds()
+    raw_train, raw_test, _ = load_imdb_tfds()
     train_split, val_split = split_train_val(raw_train, val_fraction=val_fraction)
     train_text_only = train_split.map(lambda x, y: x)
     vectorizer = make_vectorizer(train_text_only, vocab_size=vocab_size, max_len=max_len)
@@ -88,18 +88,18 @@ def prepare_datasets(
     return train_ds, val_ds, test_ds, vectorizer, sizes
 
 
-# METRICS 
+# METRICS
 
-def confusion_matrix(y_true: List[int], y_pred: List[int], num_classes: int = 2) -> tf.Tensor:
+def confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray, num_classes: int = 2) -> np.ndarray:
     y_true = tf.convert_to_tensor(y_true, dtype=tf.int32)
     y_pred = tf.convert_to_tensor(y_pred, dtype=tf.int32)
-    return tf.math.confusion_matrix(y_true, y_pred, num_classes=num_classes)
+    cm = tf.math.confusion_matrix(y_true, y_pred, num_classes=num_classes)
+    return cm.numpy()
 
 
-def accuracy_from_cm(cm: tf.Tensor) -> float:
-    cm = tf.cast(cm, tf.float32)
-    correct = tf.linalg.trace(cm)
-    total = tf.reduce_sum(cm)
+def accuracy_from_cm(cm: np.ndarray) -> float:
+    correct = np.trace(cm.astype(np.float64))
+    total = cm.sum()
     return float(correct / (total + 1e-8))
 
 
@@ -188,8 +188,42 @@ def write_text_summary(path: str, name: str, config: Dict[str, Any], results: Di
     with open(path, "w", encoding="utf-8") as f:
         f.write(f"Model: {name}\n")
         f.write(f"Config: {json.dumps(config)}\n")
+        f.write(f"Decision threshold: {results['threshold']:.3f}\n")
         f.write(f"Test metrics: {results['test_metrics']}\n")
         f.write(f"Accuracy: {results['accuracy']:.4f}  CI95: [{results['ci95'][0]:.4f}, {results['ci95'][1]:.4f}]\n")
         f.write("Confusion matrix (rows=true, cols=pred):\n")
         for row in results["confusion_matrix"]:
             f.write(f"{row}\n")
+
+
+# THRESHOLD TUNING
+
+def collect_probs_and_labels(ds: tf.data.Dataset, model: tf.keras.Model) -> Tuple[np.ndarray, np.ndarray]:
+    probs, labels = [], []
+    for xb, yb in ds:
+        p = model.predict(xb, verbose=0).ravel()
+        probs.append(p)
+        labels.append(yb.numpy().astype(int))
+    return np.concatenate(probs), np.concatenate(labels)
+
+
+def tune_threshold_on_val(val_probs: np.ndarray, val_y: np.ndarray,
+                          metric: str = "accuracy",
+                          sweep: Tuple[float, float, int] = (0.3, 0.7, 41)) -> float:
+    ts = np.linspace(*sweep)
+    if metric == "accuracy":
+        scores = [(t, ( (val_probs >= t).astype(int) == val_y ).mean()) for t in ts]
+    else:
+        # simple F1 for binary
+        scores = []
+        for t in ts:
+            preds = (val_probs >= t).astype(int)
+            tp = ((preds == 1) & (val_y == 1)).sum()
+            fp = ((preds == 1) & (val_y == 0)).sum()
+            fn = ((preds == 0) & (val_y == 1)).sum()
+            prec = tp / (tp + fp + 1e-8)
+            rec = tp / (tp + fn + 1e-8)
+            f1 = 2 * prec * rec / (prec + rec + 1e-8)
+            scores.append((t, f1))
+    best_t = max(scores, key=lambda x: x[1])[0]
+    return float(best_t)
