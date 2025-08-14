@@ -1,4 +1,4 @@
-# train/evaluate pipeline with comments
+# train/evaluate pipeline
 import argparse
 import json
 import os
